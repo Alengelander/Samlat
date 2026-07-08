@@ -10,7 +10,7 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "dev:db": "prisma db push --schema prisma/schema.dev.prisma",
+    "dev:db": "prisma db push --schema prisma/schema.dev.prisma --accept-data-loss",
     "dev:init": "node --env-file=.env scripts/init-admin.mjs",
     "init:admin": "node scripts/init-admin.mjs"
   },

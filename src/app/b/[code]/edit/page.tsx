@@ -12,7 +12,10 @@ export default async function EditBoxPage({
 }) {
   await requireSession();
   const { code } = await params;
-  const box = await prisma.box.findUnique({ where: { code } });
+  const [box, boxTypes] = await Promise.all([
+    prisma.box.findUnique({ where: { code } }),
+    prisma.boxType.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }),
+  ]);
   if (!box) notFound();
 
   return (
@@ -24,9 +27,10 @@ export default async function EditBoxPage({
           action={updateBoxAction}
           submitLabel="Änderungen speichern"
           code={box.code}
+          boxTypes={boxTypes}
           initial={{
             name: box.name,
-            size: box.size,
+            typeId: box.typeId ?? "",
             location: box.location ?? "",
             notes: box.notes ?? "",
           }}

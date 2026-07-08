@@ -12,7 +12,7 @@ import {
   setSessionCookie,
   clearSessionCookie,
 } from "@/lib/auth";
-import { BOX_SIZE_KEYS } from "@/lib/box-sizes";
+import { Prisma } from "@prisma/client";
 
 export interface ActionResult {
   error?: string;
@@ -53,7 +53,7 @@ export async function logoutAction(): Promise<void> {
 
 const boxSchema = z.object({
   name: z.string().trim().min(1, "Name ist erforderlich.").max(120),
-  size: z.enum(BOX_SIZE_KEYS as [string, ...string[]]),
+  typeId: z.string().trim().optional().or(z.literal("")),
   location: z.string().trim().max(120).optional().or(z.literal("")),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
 });
@@ -66,7 +66,7 @@ export async function createBoxAction(
 
   const parsed = boxSchema.safeParse({
     name: formData.get("name"),
-    size: formData.get("size"),
+    typeId: formData.get("typeId"),
     location: formData.get("location"),
     notes: formData.get("notes"),
   });
@@ -79,7 +79,7 @@ export async function createBoxAction(
     data: {
       code,
       name: parsed.data.name,
-      size: parsed.data.size,
+      typeId: parsed.data.typeId || null,
       location: parsed.data.location || null,
       notes: parsed.data.notes || null,
     },
@@ -99,7 +99,7 @@ export async function updateBoxAction(
 
   const parsed = boxSchema.safeParse({
     name: formData.get("name"),
-    size: formData.get("size"),
+    typeId: formData.get("typeId"),
     location: formData.get("location"),
     notes: formData.get("notes"),
   });
@@ -111,7 +111,7 @@ export async function updateBoxAction(
     where: { code },
     data: {
       name: parsed.data.name,
-      size: parsed.data.size,
+      typeId: parsed.data.typeId || null,
       location: parsed.data.location || null,
       notes: parsed.data.notes || null,
     },
@@ -178,5 +178,57 @@ export async function deleteItemAction(formData: FormData): Promise<void> {
   if (id) {
     await prisma.item.delete({ where: { id } }).catch(() => {});
     if (code) revalidatePath(`/b/${code}`);
+  }
+}
+
+// --- Kistenarten (Einstellungen) ---
+
+const boxTypeSchema = z.object({
+  name: z.string().trim().min(1, "Name ist erforderlich.").max(80),
+  dimensions: z.string().trim().max(80).optional().or(z.literal("")),
+});
+
+export async function createBoxTypeAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireSession();
+
+  const parsed = boxTypeSchema.safeParse({
+    name: formData.get("name"),
+    dimensions: formData.get("dimensions"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
+  }
+
+  const max = await prisma.boxType.aggregate({ _max: { sortOrder: true } });
+  try {
+    await prisma.boxType.create({
+      data: {
+        name: parsed.data.name,
+        dimensions: parsed.data.dimensions || null,
+        sortOrder: (max._max.sortOrder ?? 0) + 1,
+      },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "Eine Kistenart mit diesem Namen existiert bereits." };
+    }
+    throw e;
+  }
+
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function deleteBoxTypeAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  if (id) {
+    // Kisten behalten dank onDelete: SetNull ihre Daten, verlieren nur die Art.
+    await prisma.boxType.delete({ where: { id } }).catch(() => {});
+    revalidatePath("/settings");
+    revalidatePath("/");
   }
 }

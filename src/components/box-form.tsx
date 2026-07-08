@@ -1,21 +1,28 @@
 "use client";
 
 import { useActionState } from "react";
-import { BOX_SIZES } from "@/lib/box-sizes";
+import Link from "next/link";
 import type { ActionResult } from "@/lib/actions";
 
 type Action = (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
 
+export interface BoxTypeOption {
+  id: string;
+  name: string;
+  dimensions: string | null;
+}
+
 interface Props {
   action: Action;
   submitLabel: string;
+  boxTypes: BoxTypeOption[];
   code?: string;
-  initial?: { name: string; size: string; location: string; notes: string };
+  initial?: { name: string; typeId: string; location: string; notes: string };
 }
 
-const empty = { name: "", size: "M", location: "", notes: "" };
+const empty = { name: "", typeId: "", location: "", notes: "" };
 
-export function BoxForm({ action, submitLabel, code, initial }: Props) {
+export function BoxForm({ action, submitLabel, boxTypes, code, initial }: Props) {
   const values = initial ?? empty;
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(action, {});
 
@@ -27,14 +34,23 @@ export function BoxForm({ action, submitLabel, code, initial }: Props) {
         <input id="name" name="name" className="input" defaultValue={values.name} autoFocus placeholder="z.B. Werkzeug Keller" />
       </div>
       <div>
-        <label className="label" htmlFor="size">Größe</label>
-        <select id="size" name="size" className="input" defaultValue={values.size}>
-          {BOX_SIZES.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label} ({s.key}) — {s.dimensions}
-            </option>
-          ))}
-        </select>
+        <label className="label" htmlFor="typeId">Kistenart</label>
+        {boxTypes.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            Noch keine Kistenarten.{" "}
+            <Link href="/settings" className="font-medium text-brand-600">In den Einstellungen anlegen.</Link>
+          </p>
+        ) : (
+          <select id="typeId" name="typeId" className="input" defaultValue={values.typeId}>
+            <option value="">— ohne Art —</option>
+            {boxTypes.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+                {t.dimensions ? ` — ${t.dimensions}` : ""}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div>
         <label className="label" htmlFor="location">Standort (optional)</label>

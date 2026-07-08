@@ -35,6 +35,7 @@ export default async function RootLayout({
               <nav className="flex items-center gap-1 text-sm">
                 <Link href="/scan" className="btn-secondary !px-3 !py-1.5">Scannen</Link>
                 <Link href="/boxes/new" className="btn-primary !px-3 !py-1.5">Neue Kiste</Link>
+                <Link href="/settings" className="btn-secondary !px-3 !py-1.5" title="Einstellungen">⚙</Link>
                 <form action={logoutAction}>
                   <button type="submit" className="btn-secondary !px-3 !py-1.5" title="Abmelden">⏻</button>
                 </form>

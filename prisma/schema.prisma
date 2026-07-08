@@ -17,11 +17,21 @@ model User {
   createdAt    DateTime @default(now())
 }
 
+model BoxType {
+  id         String   @id @default(cuid())
+  name       String   @unique // z.B. "Umzugskarton", "Werkzeugkiste"
+  dimensions String? // frei, z.B. "40 x 30 x 25 cm"
+  sortOrder  Int      @default(0)
+  boxes      Box[]
+  createdAt  DateTime @default(now())
+}
+
 model Box {
   id        String   @id @default(cuid())
   code      String   @unique // kurzer Code fuer QR/URL, z.B. "K7Q2MP"
   name      String
-  size      String   @default("M") // siehe src/lib/box-sizes.ts
+  typeId    String?
+  type      BoxType? @relation(fields: [typeId], references: [id], onDelete: SetNull)
   location  String?
   notes     String?
   items     Item[]
@@ -29,6 +39,7 @@ model Box {
   updatedAt DateTime @updatedAt
 
   @@index([name])
+  @@index([typeId])
 }
 
 model Item {

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getBoxSize } from "@/lib/box-sizes";
 import { SearchBar } from "@/components/search-bar";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +25,7 @@ export default async function HomePage({
         }
       : undefined,
     include: {
+      type: true,
       _count: { select: { items: true } },
       items: query
         ? { where: { name: { contains: query } }, take: 3 }
@@ -57,7 +57,6 @@ export default async function HomePage({
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {boxes.map((box) => {
-            const size = getBoxSize(box.size);
             const matchedItems = "items" in box && Array.isArray(box.items) ? box.items : [];
             return (
               <li key={box.id}>
@@ -67,7 +66,7 @@ export default async function HomePage({
                     <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">{box.code}</span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-slate-500">
-                    <span>{size.label} ({size.key})</span>
+                    {box.type && <span>{box.type.name}</span>}
                     {box.location && <span>📍 {box.location}</span>}
                     <span>{box._count.items} {box._count.items === 1 ? "Gegenstand" : "Gegenstände"}</span>
                   </div>

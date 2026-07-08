@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getBoxSize } from "@/lib/box-sizes";
 import { AddItemForm } from "@/components/add-item-form";
 import { DeleteItemButton, DeleteBoxButton } from "@/components/delete-buttons";
 
@@ -19,11 +18,10 @@ export default async function BoxPage({
 
   const box = await prisma.box.findUnique({
     where: { code },
-    include: { items: { orderBy: { createdAt: "asc" } } },
+    include: { type: true, items: { orderBy: { createdAt: "asc" } } },
   });
   if (!box) notFound();
 
-  const size = getBoxSize(box.size);
   const appUrl = process.env.APP_URL ?? "";
   const boxUrl = `${appUrl}/b/${box.code}`;
   const qrDataUrl = await QRCode.toDataURL(boxUrl, { margin: 1, width: 240 });
@@ -40,7 +38,12 @@ export default async function BoxPage({
               <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">{box.code}</span>
             </div>
             <dl className="mt-2 space-y-1 text-sm text-slate-600">
-              <div><span className="text-slate-400">Größe:</span> {size.label} ({size.key}) — {size.dimensions}</div>
+              {box.type && (
+                <div>
+                  <span className="text-slate-400">Art:</span> {box.type.name}
+                  {box.type.dimensions ? ` — ${box.type.dimensions}` : ""}
+                </div>
+              )}
               {box.location && <div><span className="text-slate-400">Standort:</span> {box.location}</div>}
               {box.notes && <div><span className="text-slate-400">Notizen:</span> {box.notes}</div>}
             </dl>
