@@ -19,16 +19,16 @@ export default async function HomePage({
     where: query
       ? {
           OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { location: { contains: query, mode: "insensitive" } },
-            { items: { some: { name: { contains: query, mode: "insensitive" } } } },
+            { name: { contains: query } },
+            { location: { contains: query } },
+            { items: { some: { name: { contains: query } } } },
           ],
         }
       : undefined,
     include: {
       _count: { select: { items: true } },
       items: query
-        ? { where: { name: { contains: query, mode: "insensitive" } }, take: 3 }
+        ? { where: { name: { contains: query } }, take: 3 }
         : false,
     },
     orderBy: { updatedAt: "desc" },

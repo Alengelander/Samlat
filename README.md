@@ -27,15 +27,22 @@ App läuft danach auf http://localhost:3000. Erster Login mit
 Beim Start synchronisiert der Container das DB-Schema (`prisma db push`) und
 legt den Admin-Benutzer an.
 
-## Lokale Entwicklung
+## Lokale Entwicklung (ohne Docker, SQLite)
+
+Für schnelles Entwickeln ohne PostgreSQL/Docker. Nutzt eine SQLite-Datei über
+das separate Schema `prisma/schema.dev.prisma` (Modelle mit dem Postgres-Schema
+synchron halten!).
 
 ```bash
+cp .env.example .env   # AUTH_SECRET setzen, DEV_DATABASE_URL=file:./dev.db
 npm install
-# Postgres bereitstellen und DATABASE_URL in .env setzen
-npm run db:push
-npm run init:admin
-npm run dev
+npm run dev:db         # SQLite-Schema anlegen -> prisma/dev.db
+npm run dev:init       # Admin-Benutzer aus .env anlegen
+npm run dev            # http://localhost:3000
 ```
+
+> Hinweis: `npm install` regeneriert den Prisma-Client gegen das Postgres-Schema.
+> Danach für lokale SQLite-Arbeit erneut `npm run dev:db` ausführen.
 
 ## Datenmodell
 
