@@ -18,7 +18,10 @@ export default async function BoxPage({
 
   const box = await prisma.box.findUnique({
     where: { code },
-    include: { type: true, items: { orderBy: { createdAt: "asc" } } },
+    include: {
+      type: { select: { id: true, name: true, liters: true, dimensions: true, imageType: true } },
+      items: { orderBy: { createdAt: "asc" } },
+    },
   });
   if (!box) notFound();
 
@@ -35,18 +38,27 @@ export default async function BoxPage({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-semibold">{box.name}</h1>
-              <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">{box.code}</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">Nr. {box.code}</span>
             </div>
-            <dl className="mt-2 space-y-1 text-sm text-slate-600">
-              {box.type && (
-                <div>
-                  <span className="text-slate-400">Art:</span> {box.type.name}
-                  {box.type.dimensions ? ` — ${box.type.dimensions}` : ""}
+            <div className="mt-3 flex gap-3">
+              {box.type?.imageType && (
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded border border-slate-200 bg-slate-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/box-types/${box.type.id}/image`} alt={box.type.name} className="h-full w-full object-contain" />
                 </div>
               )}
-              {box.location && <div><span className="text-slate-400">Standort:</span> {box.location}</div>}
-              {box.notes && <div><span className="text-slate-400">Notizen:</span> {box.notes}</div>}
-            </dl>
+              <dl className="space-y-1 text-sm text-slate-600">
+                {box.type && (
+                  <div>
+                    <span className="text-slate-400">Art:</span> {box.type.name}
+                    {box.type.liters != null ? ` · ${box.type.liters} l` : ""}
+                    {box.type.dimensions ? ` · ${box.type.dimensions}` : ""}
+                  </div>
+                )}
+                {box.location && <div><span className="text-slate-400">Standort:</span> {box.location}</div>}
+                {box.notes && <div><span className="text-slate-400">Notizen:</span> {box.notes}</div>}
+              </dl>
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link href={`/b/${box.code}/edit`} className="btn-secondary">Bearbeiten</Link>
               <a href={`/api/boxes/${box.code}/label`} target="_blank" className="btn-secondary">Etikett drucken (PDF)</a>

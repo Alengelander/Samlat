@@ -10,7 +10,10 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  const box = await prisma.box.findUnique({ where: { code }, include: { type: true } });
+  const box = await prisma.box.findUnique({
+    where: { code },
+    include: { type: { select: { name: true, liters: true } } },
+  });
   if (!box) return new NextResponse("Not found", { status: 404 });
 
   const appUrl = process.env.APP_URL ?? "";

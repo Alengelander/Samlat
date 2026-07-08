@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { generateUniqueBoxCode } from "@/lib/code";
+import { generateBoxNumber } from "@/lib/code";
 import { createSessionToken } from "@/lib/session";
 import {
   requireSession,
@@ -74,12 +74,15 @@ export async function createBoxAction(
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
 
-  const code = await generateUniqueBoxCode();
+  const type = parsed.data.typeId
+    ? await prisma.boxType.findUnique({ where: { id: parsed.data.typeId } })
+    : null;
+  const code = await generateBoxNumber(type?.liters ?? null);
   await prisma.box.create({
     data: {
       code,
       name: parsed.data.name,
-      typeId: parsed.data.typeId || null,
+      typeId: type?.id ?? null,
       location: parsed.data.location || null,
       notes: parsed.data.notes || null,
     },
@@ -183,10 +186,26 @@ export async function deleteItemAction(formData: FormData): Promise<void> {
 
 // --- Kistenarten (Einstellungen) ---
 
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4 MB
+
 const boxTypeSchema = z.object({
   name: z.string().trim().min(1, "Name ist erforderlich.").max(80),
+  liters: z.coerce.number().int().min(0).max(100000).optional(),
   dimensions: z.string().trim().max(80).optional().or(z.literal("")),
 });
+
+// Liest ein optionales Bild aus dem Formular. Gibt undefined zurueck, wenn
+// keine Datei gewaehlt wurde (Bild bleibt dann unveraendert).
+async function readImage(
+  formData: FormData,
+): Promise<{ image: Uint8Array<ArrayBuffer>; imageType: string } | undefined | { error: string }> {
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) return undefined;
+  if (!file.type.startsWith("image/")) return { error: "Bitte eine Bilddatei hochladen." };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Bild ist zu groß (max. 4 MB)." };
+  const image = new Uint8Array(await file.arrayBuffer());
+  return { image, imageType: file.type };
+}
 
 export async function createBoxTypeAction(
   _prev: ActionResult,
@@ -196,19 +215,26 @@ export async function createBoxTypeAction(
 
   const parsed = boxTypeSchema.safeParse({
     name: formData.get("name"),
+    liters: formData.get("liters") || undefined,
     dimensions: formData.get("dimensions"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
 
+  const img = await readImage(formData);
+  if (img && "error" in img) return { error: img.error };
+
   const max = await prisma.boxType.aggregate({ _max: { sortOrder: true } });
   try {
     await prisma.boxType.create({
       data: {
         name: parsed.data.name,
+        liters: parsed.data.liters ?? null,
         dimensions: parsed.data.dimensions || null,
-        sortOrder: (max._max.sortOrder ?? 0) + 1,
+        image: img?.image ?? null,
+        imageType: img?.imageType ?? null,
+        sortOrder: parsed.data.liters ?? (max._max.sortOrder ?? 0) + 1,
       },
     });
   } catch (e) {
@@ -220,6 +246,50 @@ export async function createBoxTypeAction(
 
   revalidatePath("/settings");
   return { ok: true };
+}
+
+export async function updateBoxTypeAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Kistenart nicht gefunden." };
+
+  const parsed = boxTypeSchema.safeParse({
+    name: formData.get("name"),
+    liters: formData.get("liters") || undefined,
+    dimensions: formData.get("dimensions"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
+  }
+
+  const img = await readImage(formData);
+  if (img && "error" in img) return { error: img.error };
+
+  try {
+    await prisma.boxType.update({
+      where: { id },
+      data: {
+        name: parsed.data.name,
+        liters: parsed.data.liters ?? null,
+        dimensions: parsed.data.dimensions || null,
+        sortOrder: parsed.data.liters ?? undefined,
+        // Bild nur ersetzen, wenn ein neues hochgeladen wurde.
+        ...(img ? { image: img.image, imageType: img.imageType } : {}),
+      },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "Eine Kistenart mit diesem Namen existiert bereits." };
+    }
+    throw e;
+  }
+
+  revalidatePath("/settings");
+  revalidatePath(`/settings/box-types/${id}/edit`);
+  redirect("/settings");
 }
 
 export async function deleteBoxTypeAction(formData: FormData): Promise<void> {

@@ -46,12 +46,15 @@ npm run dev            # http://localhost:3000
 
 ## Datenmodell
 
-- **Box** — `code` (QR/URL), `name`, `size` (S/M/L/XL), `location`, `notes`
+- **BoxType** (Kistenart) — `name`, `liters`, `dimensions`, `image` (in DB), verwaltet
+  unter **Einstellungen**. Vorbefüllt mit den IKEA-SAMLA-Größen.
+- **Box** — `code` (Nummer, QR/URL), `name`, `type` → BoxType, `location`, `notes`
 - **Item** — gehört zu einer Box: `name`, `quantity`, `notes`
 - **User** — Login
 
-Der QR-Code einer Kiste zeigt auf `<APP_URL>/b/<code>` und öffnet direkt die
-Detailseite.
+Die Kisten-Nummer beginnt mit der Litergröße der Kistenart, z.B. `45-001`
+(1. Kiste der 45-l-Größe) — so ist die Größe direkt ablesbar. Der QR-Code zeigt
+auf `<APP_URL>/b/<nummer>` und öffnet direkt die Detailseite.
 
 ## Branches
 

@@ -25,7 +25,7 @@ export default async function HomePage({
         }
       : undefined,
     include: {
-      type: true,
+      type: { select: { name: true, liters: true, dimensions: true } },
       _count: { select: { items: true } },
       items: query
         ? { where: { name: { contains: query } }, take: 3 }

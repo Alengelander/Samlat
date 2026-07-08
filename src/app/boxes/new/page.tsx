@@ -10,6 +10,7 @@ export default async function NewBoxPage() {
   await requireSession();
   const boxTypes = await prisma.boxType.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    select: { id: true, name: true, liters: true, dimensions: true },
   });
 
   return (

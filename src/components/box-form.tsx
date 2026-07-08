@@ -9,6 +9,7 @@ type Action = (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
 export interface BoxTypeOption {
   id: string;
   name: string;
+  liters: number | null;
   dimensions: string | null;
 }
 
@@ -49,6 +50,7 @@ export function BoxForm({ action, submitLabel, boxTypes, code, initial }: Props)
                 {t.dimensions ? ` — ${t.dimensions}` : ""}
               </option>
             ))}
+
           </select>
         )}
       </div>

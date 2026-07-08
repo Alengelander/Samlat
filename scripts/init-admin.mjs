@@ -22,18 +22,21 @@ async function main() {
   });
   console.log(`[init-admin] Benutzer "${username}" bereit.`);
 
-  // Standard-Kistenarten anlegen, falls noch keine vorhanden sind.
+  // Standard-Kistenarten (IKEA SAMLA) anlegen, falls noch keine vorhanden sind.
   const typeCount = await prisma.boxType.count();
   if (typeCount === 0) {
     await prisma.boxType.createMany({
       data: [
-        { name: "Klein", dimensions: "30 x 20 x 15 cm", sortOrder: 1 },
-        { name: "Mittel", dimensions: "40 x 30 x 25 cm", sortOrder: 2 },
-        { name: "Groß", dimensions: "60 x 40 x 35 cm", sortOrder: 3 },
-        { name: "Sehr groß", dimensions: "80 x 50 x 45 cm", sortOrder: 4 },
+        { name: "SAMLA 5 l", liters: 5, dimensions: "28 x 20 x 14 cm", sortOrder: 5 },
+        { name: "SAMLA 11 l", liters: 11, dimensions: "39 x 28 x 14 cm", sortOrder: 11 },
+        { name: "SAMLA 22 l", liters: 22, dimensions: "39 x 28 x 28 cm", sortOrder: 22 },
+        { name: "SAMLA 45 l", liters: 45, dimensions: "57 x 39 x 28 cm", sortOrder: 45 },
+        { name: "SAMLA 55 l", liters: 55, dimensions: "79 x 57 x 18 cm", sortOrder: 55 },
+        { name: "SAMLA 65 l", liters: 65, dimensions: "57 x 39 x 42 cm", sortOrder: 65 },
+        { name: "SAMLA 130 l", liters: 130, dimensions: "79 x 57 x 43 cm", sortOrder: 130 },
       ],
     });
-    console.log("[init-admin] Standard-Kistenarten angelegt.");
+    console.log("[init-admin] SAMLA-Kistenarten angelegt.");
   }
 }
 

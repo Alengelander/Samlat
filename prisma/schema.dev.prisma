@@ -21,7 +21,10 @@ model User {
 model BoxType {
   id         String   @id @default(cuid())
   name       String   @unique
+  liters     Int?
   dimensions String?
+  image      Bytes?
+  imageType  String?
   sortOrder  Int      @default(0)
   boxes      Box[]
   createdAt  DateTime @default(now())

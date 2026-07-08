@@ -14,7 +14,10 @@ export default async function EditBoxPage({
   const { code } = await params;
   const [box, boxTypes] = await Promise.all([
     prisma.box.findUnique({ where: { code } }),
-    prisma.boxType.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }),
+    prisma.boxType.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true, liters: true, dimensions: true },
+    }),
   ]);
   if (!box) notFound();
 

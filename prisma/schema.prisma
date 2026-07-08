@@ -19,8 +19,11 @@ model User {
 
 model BoxType {
   id         String   @id @default(cuid())
-  name       String   @unique // z.B. "Umzugskarton", "Werkzeugkiste"
-  dimensions String? // frei, z.B. "40 x 30 x 25 cm"
+  name       String   @unique // z.B. "SAMLA 45 l"
+  liters     Int? // Groesse in Litern (Unterscheidungsmerkmal)
+  dimensions String? // frei, z.B. "57 x 39 x 28 cm"
+  image      Bytes? // hochgeladenes Bild (in DB gespeichert)
+  imageType  String? // MIME-Type des Bildes, z.B. "image/jpeg"
   sortOrder  Int      @default(0)
   boxes      Box[]
   createdAt  DateTime @default(now())
