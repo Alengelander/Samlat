@@ -1,0 +1,45 @@
+// Samlat — Kisten- & Inhaltsverwaltung
+// Prisma schema. DB wird per `prisma db push` beim Container-Start aktualisiert.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Box {
+  id        String   @id @default(cuid())
+  code      String   @unique // kurzer Code fuer QR/URL, z.B. "K7Q2MP"
+  name      String
+  size      String   @default("M") // siehe src/lib/box-sizes.ts
+  location  String?
+  notes     String?
+  items     Item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Item {
+  id        String   @id @default(cuid())
+  boxId     String
+  box       Box      @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  name      String
+  quantity  Int      @default(1)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([boxId])
+  @@index([name])
+}
