@@ -42,7 +42,7 @@ export default async function BoxPage({
             </div>
             <div className="mt-3 flex gap-3">
               {box.type?.imageType && (
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded border border-slate-200 bg-slate-50">
+                <div className="img-frame grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded border border-slate-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/api/box-types/${box.type.id}/image`} alt={box.type.name} className="h-full w-full object-contain" />
                 </div>

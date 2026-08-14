@@ -41,7 +41,7 @@ export default async function SettingsPage() {
           <ul className="divide-y divide-slate-100">
             {boxTypes.map((t) => (
               <li key={t.id} className="flex items-center gap-3 py-2">
-                <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded border border-slate-200 bg-slate-50">
+                <div className="img-frame grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded border border-slate-200">
                   {t.imageType ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={`/api/box-types/${t.id}/image`} alt={t.name} className="h-full w-full object-contain" />

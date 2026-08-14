@@ -186,7 +186,7 @@ export async function deleteItemAction(formData: FormData): Promise<void> {
 
 // --- Kistenarten (Einstellungen) ---
 
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4 MB
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 
 const boxTypeSchema = z.object({
   name: z.string().trim().min(1, "Name ist erforderlich.").max(80),
@@ -202,7 +202,7 @@ async function readImage(
   const file = formData.get("image");
   if (!(file instanceof File) || file.size === 0) return undefined;
   if (!file.type.startsWith("image/")) return { error: "Bitte eine Bilddatei hochladen." };
-  if (file.size > MAX_IMAGE_BYTES) return { error: "Bild ist zu groß (max. 4 MB)." };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Bild ist zu groß (max. 8 MB)." };
   const image = new Uint8Array(await file.arrayBuffer());
   return { image, imageType: file.type };
 }

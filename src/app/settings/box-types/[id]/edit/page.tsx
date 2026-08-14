@@ -29,7 +29,7 @@ export default async function EditBoxTypePage({
         <div className="card">
           <p className="label">Aktuelles Bild</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/box-types/${type.id}/image`} alt={type.name} className="max-h-48 rounded border border-slate-200 object-contain" />
+          <img src={`/api/box-types/${type.id}/image`} alt={type.name} className="img-frame max-h-48 rounded border border-slate-200 object-contain p-2" />
         </div>
       )}
 
